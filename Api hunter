@@ -1,0 +1,99 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import '../App.css';
+
+function Apihunter() {
+    const [title, setTitle] = useState('');
+    const [completed, setCompleted] = useState(''); // Changed the state name from setDes to setCompleted
+    const [posts, setPosts] = useState([]);
+    const client = axios.create({
+        baseURL: "https://jsonplaceholder.typicode.com/todos"
+    });
+
+    useEffect(() => {
+        const fetchPost = async () => {
+            let response = await client.get('?_limit=10');
+            setPosts(response.data);
+        };
+        fetchPost();
+    }, []);
+
+    const deletePost = async (id) => {
+        await client.delete(`${id}`);
+        setPosts(
+            posts.filter((post) => {
+                return post.id !== id;
+            })
+        );
+    };
+
+    const addPosts = async (title, completed) => {
+        let res = await client.post('', {
+            title: title,
+            completed: completed,
+        });
+        setPosts((posts) => [res.data, ...posts]);
+    };
+
+    const toCapitalize = (string) => {
+        if (typeof string === 'string' && string.length > 0) {
+          return string.charAt(0).toUpperCase() + string.slice(1);
+        } else {
+          return string;
+        }
+      };
+      
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        addPosts(title, completed);
+
+        setTitle('');
+        setCompleted(''); // Changed the state name to setCompleted
+    };
+
+    return (
+        <div className="posts-container">
+            <div className="add-post-container" style={{ backgroundColor: "#C3E6CB" }}>
+                <form onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        className="form-control my-3"
+                        placeholder="Enter your title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                    />
+                    <textarea
+                        name=""
+                        className="form-control"
+                        placeholder="Enter your Description"
+                        id=""
+                        cols="10"
+                        rows="8"
+                        value={completed}
+                        onChange={(e) => setCompleted(e.target.value)} // Changed setDes to setCompleted
+                    ></textarea>
+                    <button type="submit">Add Post</button>
+                </form>
+            </div>
+            {posts.map((post) => {
+                return (
+                    <div className="container">
+                        <div className="post-card" key={post.id}>
+                            <h1 className="post-title">{post.title.slice(0, 70).toUpperCase()}</h1>
+                            <p className="post-Des">{toCapitalize(post.completed)}</p>
+                            <div className="button">
+                                <div className="delete-btn" onClick={() =>
+                                    deletePost(post.id)}>
+                                    Delete
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+export default Apihunter;
